@@ -14,11 +14,12 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 export async function createSession(userId: string, clinicId: string): Promise<string> {
   const sessionId = crypto.randomUUID()
+  const token = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
 
   await sql`
-    INSERT INTO sessions (id, user_id, clinic_id, expires_at, created_at)
-    VALUES (${sessionId}, ${userId}, ${clinicId}, ${expiresAt}, now())
+    INSERT INTO sessions (id, user_id, clinic_id, token, expires_at, created_at)
+    VALUES (${sessionId}, ${userId}, ${clinicId}, ${token}, ${expiresAt}, now())
   `
 
   return sessionId
