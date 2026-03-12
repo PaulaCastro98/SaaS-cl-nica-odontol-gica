@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers'
 import { getSessionUser } from './auth'
 
+export { getSessionUser }
+
 export async function getCurrentUser() {
   const cookieStore = await cookies()
   const sessionId = cookieStore.get('sessionId')?.value
