@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import { getSessionUser } from '@/lib/auth-session'
+import { getCurrentUser } from '@/lib/auth-session'
 
 const sql = neon(process.env.DATABASE_URL!)
 
 export async function PATCH(request: NextRequest) {
   try {
-    const user = await getSessionUser()
+    const user = await getCurrentUser()
 
     if (!user) {
       return NextResponse.json(
