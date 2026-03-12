@@ -9,9 +9,10 @@ interface Appointment {
   id: string
   patient_name: string
   service_name: string
-  date: string
-  time: string
+  appointment_date: string
+  duration_minutes: number
   status: string
+  notes: string | null
 }
 
 export default function AgendaPage() {
@@ -22,7 +23,8 @@ export default function AgendaPage() {
     patient_id: '',
     service_id: '',
     appointment_date: '',
-    appointment_time: '',
+    duration_minutes: '30',
+    notes: '',
   })
   const [patients, setPatients] = useState<any[]>([])
   const [services, setServices] = useState<any[]>([])
@@ -79,7 +81,7 @@ export default function AgendaPage() {
       })
 
       if (response.ok) {
-        setFormData({ patient_id: '', service_id: '', appointment_date: '', appointment_time: '' })
+        setFormData({ patient_id: '', service_id: '', appointment_date: '', duration_minutes: '30', notes: '' })
         setShowForm(false)
         fetchAppointments()
       }
@@ -136,20 +138,21 @@ export default function AgendaPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Data</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Data e Horário</label>
                 <Input
-                  type="date"
+                  type="datetime-local"
                   value={formData.appointment_date}
                   onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Horário</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Duração (min)</label>
                 <Input
-                  type="time"
-                  value={formData.appointment_time}
-                  onChange={(e) => setFormData({ ...formData, appointment_time: e.target.value })}
+                  type="number"
+                  value={formData.duration_minutes}
+                  onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
+                  placeholder="30"
                   required
                 />
               </div>
@@ -175,18 +178,18 @@ export default function AgendaPage() {
                 <tr className="border-b border-border">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Paciente</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Serviço</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Data</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Horário</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Data/Hora</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Duração</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {appointments.map((apt) => (
                   <tr key={apt.id} className="border-b border-border hover:bg-muted/50">
-                    <td className="px-6 py-4 text-sm text-foreground">{apt.patient_name}</td>
-                    <td className="px-6 py-4 text-sm text-foreground">{apt.service_name}</td>
-                    <td className="px-6 py-4 text-sm text-foreground">{new Date(apt.date).toLocaleDateString('pt-BR')}</td>
-                    <td className="px-6 py-4 text-sm text-foreground">{apt.time}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{apt.patient_name || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{apt.service_name || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{new Date(apt.appointment_date).toLocaleString('pt-BR')}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{apt.duration_minutes} min</td>
                     <td className="px-6 py-4 text-sm">
                       <span className="px-2 py-1 bg-accent/20 text-accent rounded-full text-xs font-medium">
                         {apt.status}

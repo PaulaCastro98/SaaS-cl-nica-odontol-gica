@@ -20,23 +20,26 @@ export async function GET(request: NextRequest) {
       SELECT 
         s.id, 
         p.name as patient_name,
-        s.description,
-        s.total_amount,
-        s.created_at as sale_date
+        s.notes as description,
+        s.amount,
+        s.payment_method,
+        s.status,
+        s.sale_date,
+        s.created_at
       FROM sales s
-      JOIN patients p ON s.patient_id = p.id
+      LEFT JOIN patients p ON s.patient_id = p.id
       WHERE s.clinic_id = ${user.clinic_id}
-      ORDER BY s.created_at DESC
+      ORDER BY s.sale_date DESC, s.created_at DESC
     `
 
     // Get monthly summary
     const monthly = await sql`
       SELECT 
-        TO_CHAR(s.created_at, 'YYYY-MM') as month,
-        SUM(s.total_amount) as total
+        TO_CHAR(s.sale_date, 'YYYY-MM') as month,
+        SUM(s.amount) as total
       FROM sales s
       WHERE s.clinic_id = ${user.clinic_id}
-      GROUP BY TO_CHAR(s.created_at, 'YYYY-MM')
+      GROUP BY TO_CHAR(s.sale_date, 'YYYY-MM')
       ORDER BY month DESC
       LIMIT 12
     `
@@ -65,13 +68,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { patient_id, description, total_amount } = await request.json()
+    const { patient_id, notes, amount, payment_method } = await request.json()
 
     const result = await sql`
       INSERT INTO sales 
-        (clinic_id, patient_id, description, total_amount, created_at)
+        (clinic_id, patient_id, notes, amount, payment_method, status, sale_date, created_at)
       VALUES 
-        (${user.clinic_id}, ${patient_id}, ${description}, ${total_amount}, now())
+        (${user.clinic_id}, ${patient_id}, ${notes || null}, ${amount}, ${payment_method || 'cash'}, 'completed', CURRENT_DATE, now())
       RETURNING id
     `
 

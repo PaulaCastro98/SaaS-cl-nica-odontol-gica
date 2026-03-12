@@ -31,10 +31,13 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password)
 
+    // Generate a slug from email
+    const slug = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-')
+
     // Create clinic and admin user in transaction
     const clinicResult = await sql`
-      INSERT INTO clinics (name, email, password_hash, created_at)
-      VALUES (${email}, ${email}, ${hashedPassword}, now())
+      INSERT INTO clinics (name, slug, email, created_at, updated_at)
+      VALUES (${email}, ${slug}, ${email}, now(), now())
       RETURNING id
     `
 

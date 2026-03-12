@@ -8,8 +8,10 @@ import { Card } from '@/components/ui/card'
 interface Sale {
   id: string
   patient_name: string
-  description: string
-  total_amount: number
+  description: string | null
+  amount: number
+  payment_method: string | null
+  status: string
   sale_date: string
 }
 
@@ -25,8 +27,9 @@ export default function VendasPage() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     patient_id: '',
-    description: '',
-    total_amount: '',
+    notes: '',
+    amount: '',
+    payment_method: 'cash',
   })
   const [patients, setPatients] = useState<any[]>([])
 
@@ -66,12 +69,12 @@ export default function VendasPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          total_amount: parseFloat(formData.total_amount),
+          amount: parseFloat(formData.amount),
         }),
       })
 
       if (response.ok) {
-        setFormData({ patient_id: '', description: '', total_amount: '' })
+        setFormData({ patient_id: '', notes: '', amount: '', payment_method: 'cash' })
         setShowForm(false)
         fetchSales()
       }
@@ -120,19 +123,33 @@ export default function VendasPage() {
                 <Input
                   type="number"
                   step="0.01"
-                  value={formData.total_amount}
-                  onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   placeholder="0.00"
                   required
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Forma de Pagamento</label>
+                <select
+                  value={formData.payment_method}
+                  onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-border bg-input text-foreground"
+                >
+                  <option value="cash">Dinheiro</option>
+                  <option value="credit_card">Cartão de Crédito</option>
+                  <option value="debit_card">Cartão de Débito</option>
+                  <option value="pix">PIX</option>
+                  <option value="transfer">Transferência</option>
+                </select>
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Descrição</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Observações</label>
               <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descrição do serviço/produto"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Observações sobre a venda"
                 className="w-full px-4 py-2 rounded-lg border border-border bg-input text-foreground"
               />
             </div>
@@ -157,7 +174,7 @@ export default function VendasPage() {
         <Card className="p-6 bg-card border-border">
           <p className="text-sm text-muted-foreground mb-2">Ticket Médio</p>
           <p className="text-3xl font-bold text-foreground">
-            R$ {sales.length > 0 ? (sales.reduce((sum, s) => sum + s.total_amount, 0) / sales.length).toFixed(2) : '0.00'}
+            R$ {sales.length > 0 ? (sales.reduce((sum, s) => sum + Number(s.amount || 0), 0) / sales.length).toFixed(2) : '0.00'}
           </p>
         </Card>
       </div>
@@ -185,13 +202,13 @@ export default function VendasPage() {
               <tbody>
                 {sales.map((sale) => (
                   <tr key={sale.id} className="border-b border-border hover:bg-muted/50">
-                    <td className="px-6 py-4 text-sm text-foreground">{sale.patient_name}</td>
-                    <td className="px-6 py-4 text-sm text-foreground">{sale.description}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{sale.patient_name || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{sale.description || '-'}</td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {new Date(sale.sale_date).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-primary">
-                      R$ {sale.total_amount.toFixed(2)}
+                      R$ {Number(sale.amount || 0).toFixed(2)}
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,5 @@
 import { hash, compare } from 'bcryptjs'
 import { neon } from '@neondatabase/serverless'
-import { users, clinics, sessions } from '@/lib/db/schema'
 
 const sql = neon(process.env.DATABASE_URL!)
 

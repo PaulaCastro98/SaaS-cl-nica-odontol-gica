@@ -20,15 +20,16 @@ export async function GET(request: NextRequest) {
         a.id, 
         p.name as patient_name,
         s.name as service_name,
-        a.appointment_date as date,
-        a.appointment_time as time,
+        a.appointment_date,
+        a.duration_minutes,
         a.status,
+        a.notes,
         a.created_at
       FROM appointments a
-      JOIN patients p ON a.patient_id = p.id
-      JOIN services s ON a.service_id = s.id
+      LEFT JOIN patients p ON a.patient_id = p.id
+      LEFT JOIN services s ON a.service_id = s.id
       WHERE a.clinic_id = ${user.clinic_id}
-      ORDER BY a.appointment_date DESC, a.appointment_time DESC
+      ORDER BY a.appointment_date DESC
     `
 
     return NextResponse.json(appointments, { status: 200 })
@@ -52,13 +53,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { patient_id, service_id, appointment_date, appointment_time } = await request.json()
+    const { patient_id, service_id, appointment_date, duration_minutes, notes } = await request.json()
 
     const result = await sql`
       INSERT INTO appointments 
-        (clinic_id, patient_id, service_id, appointment_date, appointment_time, status, created_at)
+        (clinic_id, patient_id, service_id, appointment_date, duration_minutes, status, notes, created_at)
       VALUES 
-        (${user.clinic_id}, ${patient_id}, ${service_id}, ${appointment_date}, ${appointment_time}, 'scheduled', now())
+        (${user.clinic_id}, ${patient_id}, ${service_id}, ${appointment_date}, ${duration_minutes || 30}, 'scheduled', ${notes || null}, now())
       RETURNING id
     `
 
