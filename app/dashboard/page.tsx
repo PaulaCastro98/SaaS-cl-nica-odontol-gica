@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 
   const appointmentsResult = await sql`
     SELECT COUNT(*) as count FROM appointments 
-    WHERE clinic_id = ${user.clinic_id} AND date >= CURRENT_DATE
+    WHERE clinic_id = ${user.clinic_id} AND appointment_date >= CURRENT_DATE
   `
 
   const servicesResult = await sql`
@@ -26,8 +26,8 @@ export default async function DashboardPage() {
   `
 
   const salesResult = await sql`
-    SELECT COALESCE(SUM(total_amount), 0) as total FROM sales 
-    WHERE clinic_id = ${user.clinic_id} AND DATE(created_at) = CURRENT_DATE
+    SELECT COALESCE(SUM(amount), 0) as total FROM sales 
+    WHERE clinic_id = ${user.clinic_id} AND sale_date = CURRENT_DATE
   `
 
   const patients = patientsResult[0]?.count || 0
