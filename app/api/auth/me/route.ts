@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-session'
+// Force cache invalidation
 
 export async function GET() {
   try {
