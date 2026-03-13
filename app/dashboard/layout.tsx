@@ -68,6 +68,9 @@ export default function DashboardLayout({
           <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90 font-medium">
             <span>📊</span> Dashboard
           </Link>
+          <Link href="/dashboard/agendamentos" className="flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition">
+            <span>📝</span> Agendamentos
+          </Link>
           <Link href="/dashboard/pacientes" className="flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition">
             <span>👥</span> Pacientes
           </Link>
