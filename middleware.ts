@@ -4,7 +4,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rotas públicas
-  const publicRoutes = ['/login', '/signup', '/api/auth/login', '/api/auth/signup']
+  const publicRoutes = ['/login', '/signup', '/api/auth/login', '/api/auth/signup', '/api/public', '/clinica', '/clinicas']
   
   if (publicRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next()
