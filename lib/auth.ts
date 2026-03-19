@@ -1,5 +1,6 @@
 import { hash, compare } from 'bcryptjs'
 import { neon } from '@neondatabase/serverless'
+import crypto from 'crypto'
 
 const sql = neon(process.env.DATABASE_URL!)
 

@@ -8,7 +8,8 @@ const sql = neon(process.env.DATABASE_URL!); // Instância do neon para consulta
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password } = await request.json()
+    console.log('[v0] Login attempt:', email)
 
     if (!email || !password) {
       return NextResponse.json(
@@ -22,6 +23,8 @@ export async function POST(request: NextRequest) {
       SELECT id, password_hash, clinic_id, name, is_admin FROM users WHERE email = ${email}
     `;
 
+    console.log('[v0] User found:', userResult.length > 0)
+
     if (userResult.length === 0) {
       return NextResponse.json(
         { message: 'Credenciais inválidas.' },
@@ -31,8 +34,10 @@ export async function POST(request: NextRequest) {
 
     const user = userResult[0];
 
-    // 2. Verificar a senha usando a função do seu lib/auth.ts
-    const isValid = await verifyPassword(password, user.password_hash);
+    // Verify password
+    const isValid = await verifyPassword(password, user.password_hash)
+    console.log('[v0] Password valid:', isValid)
+    
     if (!isValid) {
       return NextResponse.json(
         { message: 'Credenciais inválidas.' },
@@ -40,15 +45,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Criar uma sessão no banco de dados usando a função do seu lib/auth.ts
-    const sessionId = await createSession(user.id, user.clinic_id);
-
-    // 4. Definir o cookie de sessão usando a função do seu lib/auth-session.ts
-    // Nota: setSessionCookie usa `cookies()` do Next.js, que opera em Server Components/Route Handlers.
-    // A função `setSessionCookie` já manipula o `NextResponse.cookies.set` internamente.
-    // No entanto, como estamos em um Route Handler, podemos definir o cookie diretamente na resposta.
-    // A função `setSessionCookie` do `lib/auth-session.ts` é mais adequada para Server Actions ou Server Components.
-    // Para Route Handlers, é mais direto manipular a resposta.
+    // Create session
+    console.log('[v0] Creating session...')
+    const sessionId = await createSession(user.id, user.clinic_id)
+    console.log('[v0] Session created:', sessionId)
 
     const response = NextResponse.json(
       {
@@ -73,11 +73,12 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    return response;
+    console.log('[v0] Login successful')
+    return response
   } catch (error) {
-    console.error('Erro ao fazer login:', error);
+    console.error('[v0] Login error:', error)
     return NextResponse.json(
-      { message: 'Erro interno do servidor ao fazer login.' },
+      { error: 'Erro ao fazer login: ' + (error instanceof Error ? error.message : 'Desconhecido') },
       { status: 500 }
     );
   }
