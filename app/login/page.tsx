@@ -20,22 +20,31 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      console.log('[v0] Sending login request:', { email, password: '***' })
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('[v0] Login response status:', response.status)
       const data = await response.json()
+      console.log('[v0] Login response data:', data)
 
       if (!response.ok) {
         setError(data.error || 'Erro ao fazer login')
+        console.error('[v0] Login error:', data.error)
         return
       }
 
+      console.log('[v0] Login successful, redirecting to dashboard')
+      // Aguardar um pouco para garantir que o cookie foi setado
+      await new Promise(resolve => setTimeout(resolve, 500))
       router.push('/dashboard')
     } catch (err) {
-      setError('Erro ao conectar ao servidor')
+      const errMsg = err instanceof Error ? err.message : 'Desconhecido'
+      console.error('[v0] Login exception:', err)
+      setError('Erro ao conectar ao servidor: ' + errMsg)
     } finally {
       setLoading(false)
     }

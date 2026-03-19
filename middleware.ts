@@ -19,17 +19,12 @@ declare module 'next/server' {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rotas públicas que NÃO precisam de autenticação
-  const publicPaths = [
-    '/login',
-    '/signup',
-    '/api/auth/login',
-    '/api/auth/register', // Se você tiver uma rota de registro
-    '/api/clinics/slug', // Rota pública para buscar clínica por slug
-  ];
-
-  // Verifica se a rota atual é uma rota pública
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
+  // Rotas públicas
+  const publicRoutes = ['/login', '/signup', '/api/auth/login', '/api/auth/signup', '/api/public', '/clinica', '/clinicas']
+  
+  if (publicRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.next()
+  }
 
   // Se for uma rota pública, permite que a requisição continue sem autenticação
   if (isPublicPath) {

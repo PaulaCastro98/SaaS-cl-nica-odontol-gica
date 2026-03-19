@@ -18,15 +18,12 @@ export async function GET(request: NextRequest) {
       SELECT 
         ar.id,
         ar.clinic_id,
-        ar.patient_name,
-        ar.patient_email,
-        ar.patient_phone,
+        ar.name as patient_name,
+        ar.phone as patient_phone,
         ar.service_id,
         s.name as service_name,
-        ar.preferred_date,
         ar.message,
         ar.status,
-        ar.whatsapp_sent,
         ar.created_at
       FROM appointment_requests ar
       LEFT JOIN services s ON ar.service_id = s.id
@@ -48,20 +45,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const id = request.nextUrl.pathname.split('/').pop()
-    const { status, whatsapp_sent } = await request.json()
+    const { id, status } = await request.json()
 
-    const updates = []
-    if (status) updates.push(`status = '${status}'`)
-    if (whatsapp_sent !== undefined) updates.push(`whatsapp_sent = ${whatsapp_sent}`)
-
-    if (updates.length === 0) {
-      return NextResponse.json({ error: 'No updates provided' }, { status: 400 })
+    if (!id || !status) {
+      return NextResponse.json({ error: 'ID e status são obrigatórios' }, { status: 400 })
     }
 
     await sql`
       UPDATE appointment_requests 
-      SET ${updates.join(', ')}, updated_at = now()
+      SET status = ${status}, updated_at = now()
       WHERE id = ${id} AND clinic_id = ${user.clinic_id}
     `
 
