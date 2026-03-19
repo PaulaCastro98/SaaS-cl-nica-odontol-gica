@@ -1,3 +1,4 @@
+// app/dashboard/pacientes/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -33,11 +34,24 @@ export default function PacientesPage() {
     try {
       const response = await fetch('/api/patients')
       const data = await response.json()
-      setPatients(data)
+
+      // --- ALTERAÇÃO 1: Adiciona console.log para depuração ---
+      console.log('Frontend recebeu dados da API de pacientes:', data);
+
+      // --- ALTERAÇÃO 2: Garante que 'data' é um array antes de setar ---
+      if (Array.isArray(data)) {
+        setPatients(data);
+      } else {
+        // Se a API retornar um objeto de erro ou algo inesperado,
+        // logue um aviso e defina patients como um array vazio para evitar o erro .map
+        console.warn('API de pacientes retornou dados não-array ou erro:', data);
+        setPatients([]);
+      }
     } catch (error) {
-      console.error('Erro ao carregar pacientes:', error)
+      console.error('Erro ao carregar pacientes (rede/parsing):', error);
+      setPatients([]); // Garante que patients seja um array vazio em caso de erro de rede/parsing
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -67,7 +81,7 @@ export default function PacientesPage() {
           <h1 className="text-3xl font-bold text-foreground">Pacientes</h1>
           <p className="text-muted-foreground">Gerencie todos os pacientes da clínica</p>
         </div>
-        <Button 
+        <Button
           onClick={() => setShowForm(!showForm)}
           className="bg-primary hover:bg-primary/90"
         >
@@ -143,7 +157,8 @@ export default function PacientesPage() {
                 </tr>
               </thead>
               <tbody>
-                {patients.map((patient) => (
+                {/* --- ALTERAÇÃO 3: Garante que patients é um array antes de mapear --- */}
+                {patients && Array.isArray(patients) && patients.map((patient) => (
                   <tr key={patient.id} className="border-b border-border hover:bg-muted/50">
                     <td className="px-6 py-4 text-sm text-foreground">{patient.name}</td>
                     <td className="px-6 py-4 text-sm text-foreground">{patient.email}</td>
