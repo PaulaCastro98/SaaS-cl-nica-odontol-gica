@@ -1,8 +1,20 @@
 import { hash, compare } from 'bcryptjs'
 import { neon } from '@neondatabase/serverless'
-import crypto from 'crypto'
 
 const sql = neon(process.env.DATABASE_URL!)
+
+// Função para gerar UUID compatível com Edge Runtime
+function generateUUID(): string {
+  if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.randomUUID) {
+    return globalThis.crypto.randomUUID()
+  }
+  // Fallback para ambientes sem crypto.randomUUID
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return hash(password, 10)
@@ -13,8 +25,8 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function createSession(userId: string, clinicId: string): Promise<string> {
-  const sessionId = crypto.randomUUID()
-  const token = crypto.randomUUID()
+  const sessionId = generateUUID()
+  const token = generateUUID()
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
 
   await sql`
