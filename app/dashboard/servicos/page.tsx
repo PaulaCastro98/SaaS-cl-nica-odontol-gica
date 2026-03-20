@@ -1,16 +1,22 @@
+// app/dashboard/servicos/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+// import Link from 'next/link' // Removido pois não está sendo usado no trecho fornecido
 
 interface Service {
   id: string
   name: string
   description: string
-  price: number
+  // CORREÇÃO AQUI: Permite que base_price seja number ou string,
+  // pois o backend pode retornar como string para tipos NUMERIC.
+  base_price: number | string
   duration_minutes: number
+  is_active: boolean
+  created_at: string
 }
 
 export default function ServicosPage() {
@@ -20,8 +26,8 @@ export default function ServicosPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: '',
-    duration_minutes: '',
+    base_price: '', // Mantido como string para o input
+    duration_minutes: '', // Mantido como string para o input
   })
 
   useEffect(() => {
@@ -32,9 +38,18 @@ export default function ServicosPage() {
     try {
       const response = await fetch('/api/services')
       const data = await response.json()
-      setServices(data)
+
+      console.log('API /api/services retornou:', data);
+
+      if (Array.isArray(data)) {
+        setServices(data)
+      } else {
+        console.error('Erro: API /api/services não retornou um array de serviços:', data);
+        setServices([]);
+      }
     } catch (error) {
-      console.error('Erro ao carregar serviços:', error)
+      console.error('Erro ao carregar serviços (rede/parsing):', error)
+      setServices([]);
     } finally {
       setLoading(false)
     }
@@ -48,18 +63,24 @@ export default function ServicosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          price: parseFloat(formData.price),
+          // Converte base_price e duration_minutes para os tipos corretos antes de enviar
+          base_price: parseFloat(formData.base_price),
           duration_minutes: parseInt(formData.duration_minutes),
         }),
       })
 
       if (response.ok) {
-        setFormData({ name: '', description: '', price: '', duration_minutes: '' })
+        setFormData({ name: '', description: '', base_price: '', duration_minutes: '' })
         setShowForm(false)
-        fetchServices()
+        fetchServices() // Recarrega a lista de serviços após adicionar um novo
+      } else {
+        const errorData = await response.json();
+        console.error('Erro ao criar serviço (API):', errorData.error);
+        alert(`Erro ao adicionar serviço: ${errorData.error || 'Erro desconhecido'}`);
       }
     } catch (error) {
-      console.error('Erro ao criar serviço:', error)
+      console.error('Erro ao criar serviço (rede/parsing):', error)
+      alert('Erro de conexão ao adicionar serviço.');
     }
   }
 
@@ -70,7 +91,7 @@ export default function ServicosPage() {
           <h1 className="text-3xl font-bold text-foreground">Serviços</h1>
           <p className="text-muted-foreground">Gerencie todos os serviços oferecidos</p>
         </div>
-        <Button 
+        <Button
           onClick={() => setShowForm(!showForm)}
           className="bg-primary hover:bg-primary/90"
         >
@@ -102,12 +123,12 @@ export default function ServicosPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Preço (R$)</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Preço Base (R$)</label>
                 <Input
                   type="number"
                   step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  value={formData.base_price}
+                  onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
                   placeholder="0.00"
                   required
                 />
@@ -149,7 +170,10 @@ export default function ServicosPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Preço</p>
-                    <p className="font-medium text-primary">R$ {service.price.toFixed(2)}</p>
+                    {/* CORREÇÃO AQUI: Converte para número antes de chamar toFixed */}
+                    <p className="font-medium text-primary">
+                      R$ {Number(service.base_price).toFixed(2)}
+                    </p>
                   </div>
                 </div>
               </Card>
