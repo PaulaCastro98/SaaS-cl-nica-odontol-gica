@@ -11,7 +11,7 @@ const PUBLIC_ROUTES = [
   '/clinicas',
 ]
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isPublic = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
